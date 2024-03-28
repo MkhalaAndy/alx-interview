@@ -1,38 +1,45 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
+
+"""Script that reads stdin line by line and computes metrics"""
 
 import sys
-from collections import defaultdict
 
-def print_statistics(total_size, status_counts):
-    print(f"Total file size: {total_size}")
-    for status_code, count in sorted(status_counts.items()):
-        print(f"{status_code}: {count}")
 
-def parse_line(line):
-    parts = line.split()
-    if len(parts) != 7:
-        return None, None
-    ip_address, _, _, status_code, file_size = parts[:2] + parts[3:6]
-    if not status_code.isdigit():
-        return None, None
-    return int(status_code), int(file_size)
+def printsts(dic, size):
+    """ WWPrints information """
+    print("File size: {:d}".format(size))
+    for i in sorted(dic.keys()):
+        if dic[i] != 0:
+            print("{}: {:d}".format(i, dic[i]))
 
-def main():
-    total_size = 0
-    status_counts = defaultdict(int)
-    try:
-        for i, line in enumerate(sys.stdin, 1):
-            status_code, file_size = parse_line(line.strip())
-            if status_code is None or file_size is None:
-                continue
-            total_size += file_size
-            status_counts[status_code] += 1
-            if i % 10 == 0:
-                print_statistics(total_size, status_counts)
-    except KeyboardInterrupt:
-        print_statistics(total_size, status_counts)
-        sys.exit(0)
 
-if __name__ == "__main__":
-    main()
+sts = {"200": 0, "301": 0, "400": 0, "401": 0, "403": 0,
+       "404": 0, "405": 0, "500": 0}
 
+count = 0
+size = 0
+
+try:
+    for line in sys.stdin:
+        if count != 0 and count % 10 == 0:
+            printsts(sts, size)
+
+        stlist = line.split()
+        count += 1
+
+        try:
+            size += int(stlist[-1])
+        except:
+            pass
+
+        try:
+            if stlist[-2] in sts:
+                sts[stlist[-2]] += 1
+        except:
+            pass
+    printsts(sts, size)
+
+
+except KeyboardInterrupt:
+    printsts(sts, size)
+    raise
